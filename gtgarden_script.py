@@ -306,7 +306,7 @@ gtgarden['borough'].sample(5)
 
 # %%
 #These are corrections to a few... small unique errors in the original dataset.
-#For example, this garden in the Bronx being des.ignated as Brooklyn.
+#For example, this garden in the Bronx being designated as Brooklyn.
 
 print(gtgarden.loc[5,'gardenname'])
 print(gtgarden.loc[5,'borough'])
