@@ -2,6 +2,8 @@
 This project explores data sourced from NYC OpenData's GreenThumb Garden Info, dated to 9/16/2024. Further updates are not reflected in this repo.
 The most up-to-date version of this record [can be found on NYC OpenData's archive](https://data.cityofnewyork.us/dataset/GreenThumb-Garden-Info/p78i-pat6/about_data).
 
+Additional data regarding Neighborhood Tabulation Areas was also provided by NYC OpenData. This dataset was called via API and is likewise available [through the OpenData archive](https://data.cityofnewyork.us/City-Government/2010-Neighborhood-Tabulation-Areas-NTAs-/cpf4-rkhq). Unlike GreenThumb Garden Info, this dataset is not actively updated. It should be noted that while GreenThumb Garden Info as late as 2024, it still used 2010 NTAs as reference.
+
 The original, unaltered dataset is contained in an Excel-compatible CSV (GreenThumb_Garden_Info_20240916.csv).
 The included notebook (greenthumb_garden_0924.ipynb) demonstrates Python-based data cleaning. A Python script version of the same is included (gtgarden_script.py).
 Its output (greenthumb_garden_clean.csv) reflects the dataset post-processing.
