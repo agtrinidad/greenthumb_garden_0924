@@ -312,4 +312,6 @@ gtgarden_postclean = gtgarden
 #Write cleaned dataframe to CSV
 gtgarden_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
 
+#Further minor changes can be made in Excel from here.
+
 
