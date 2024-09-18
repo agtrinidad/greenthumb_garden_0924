@@ -305,15 +305,24 @@ gtgarden['borough'] = gtgarden['borough'].apply(boroughsort)
 gtgarden['borough'].sample(5)
 
 # %%
-#This seems good enough to go!
+#These are corrections to a few... small unique errors in the original dataset.
+#For example, this garden in the Bronx being des.ignated as Brooklyn.
+
+print(gtgarden.loc[5,'gardenname'])
+print(gtgarden.loc[5,'borough'])
+gtgarden.loc[5, 'borough'] = 'Bronx'
+
+#Easy fix.
+#We've made this dataset usable, but it might take some more work than this to make it perfect.
+
+# %%
+#Still, though. This seems good enough to go!
 #Let's output our new, cleaned, upgraded dataset.
 
 gtgarden_postclean = gtgarden
 
 # %%
-#Write cleaned dataframe to CSV
+#Write cleaned dataframe to CSV!
 gtgarden_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
-
-#Further minor changes can be made in Excel from here.
 
 
