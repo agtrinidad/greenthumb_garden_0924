@@ -1,5 +1,5 @@
 # %%
-#Basic dataframe & numerical libraries
+#Basic DataFrame & numerical libraries
 import pandas as pd 
 
 #Importing visualization libraries for exploratory analysis
@@ -12,6 +12,16 @@ import geopy
 #Importing geocoder classes
 from geopy.geocoders import GoogleV3
 
+#Logical conclusion of importing pandas and geopy
+import shapely #will help us work with geocoded data later
+from shapely.geometry import Point, Polygon
+
+#Importing necessary packages
+import requests
+from requests import get
+import json
+import re
+
 #This library (safetyfile) contains a Google Maps API key.
 #It is excluded from the uploaded dataset in the interest of informational security.
 import safetyfile
@@ -20,7 +30,7 @@ from safetyfile import googleapi
 print(type(googleapi))
 
 # %%
-#Reading original CSV to dataframe
+#Reading original CSV to DataFrame
 gtgarden = pd.read_csv('GreenThumb_Garden_Info_20240916.csv')
 gtgarden.info()
 
@@ -98,7 +108,7 @@ slice.loc[130, 'lon'] = gc_lon( geolocator.geocode(slice.loc[130, 'address']) )
 slice = slice.drop(columns=['geocode'])
 
 # %%
-#With that done, let's now join this content back into the main dataframe.
+#With that done, let's now join this content back into the main DataFrame.
 gtgarden.update(slice, overwrite=False, join='left', errors='ignore')
 gtgarden.info()
 
@@ -145,7 +155,7 @@ slice['CensusTract'] = slice.apply(extractcensustract, axis=1)
 slice[['address','CensusTract','lat','lon']].sample(5)
 
 # %%
-#Return again to the main dataframe!
+#Return again to the main DataFrame!
 gtgarden.update(slice, overwrite=False, join='left', errors='ignore')
 gtgarden.info()
 
@@ -237,7 +247,7 @@ slice = slice.fillna('N/A')
 slice.sample(15)
 
 # %%
-#Back to the main dataframe.
+#Back to the main DataFrame.
 gtgarden.update(slice, overwrite=True, join='left', errors='ignore')
 gtgarden.info()
 
@@ -285,7 +295,7 @@ gtgarden = gtgarden[['parksid',
 gtgarden.sample(5)
 
 # %%
-#One last thing! It's really weird that the boroughs are acronymized in this way...
+#It's really weird that the boroughs are acronymized in this way...
 #The good thing is that the creators of this dataset made every borough have a unique one-character symbol.
 #We'll replace them with the function below:
 
@@ -306,7 +316,7 @@ gtgarden['borough'].sample(5)
 
 # %%
 #These are corrections to a few... small unique errors in the original dataset.
-#For example, this garden in the Bronx being designated as Brooklyn.
+#For example, this garden in the Bronx being des.ignated as Brooklyn.
 
 print(gtgarden.loc[5,'gardenname'])
 print(gtgarden.loc[5,'borough'])
@@ -316,13 +326,166 @@ gtgarden.loc[5, 'borough'] = 'Bronx'
 #We've made this dataset usable, but it might take some more work than this to make it perfect.
 
 # %%
-#Still, though. This seems good enough to go!
+#It'll be nice if we can sort these by neighborhood.
+#These records include NTA (Neighborhood Tabulation Areas), but unfortunately these only contain the serial codes.
+#Some of these are still missing, too... The ones present are based on the 2010 NTAs.
+#First, let's import the NTA table as a DataFrame.
+
+ntatableraw = get("https://data.cityofnewyork.us/resource/q2z5-ai38.json").json()
+ntarecords = pd.DataFrame(ntatableraw)
+ntarecords.info()
+
+ntarecords.sample(5)
+
+# %%
+#Let's transform those geometries into multipolygon shapes.
+#What we're trying to do is check if these points are in these multipolygons...
+ntarecords['the_geom'] = ntarecords['the_geom'].apply(lambda x: dict(x))
+ntarecords['the_geom'] = ntarecords['the_geom'].apply(lambda x: shapely.geometry.shape(x))
+ntarecords['the_geom'].sample(4)
+
+#Great!
+
+# %%
+#Cool! Now let's clean the NTA column in 'gtgarden'.
+
+gtgarden['NTA'] = gtgarden['NTA'].apply(lambda x: x[:4])
+gtgarden['NTA'].sample(3)
+
+# %%
+#We still have to take care of those empty 'NTA' rows...
+#The 'slice' is back!
+
+slice = gtgarden[gtgarden['NTA'] == '/'].copy()
+slice.sample(5)
+
+# %%
+#For our own ease, let's make some "Points" in this isolated DataFrame
+slice['Points'] = slice.apply(lambda row: Point(row['lon'],row['lat']), axis=1)
+slice['Points'].sample(5)
+
+# %%
+#Now, let's try and apply this...
+
+def find_NTA(point):
+    for instance, row in ntarecords.iterrows():
+        if row['the_geom'].contains(point):
+            return row['ntacode']
+    return None
+
+slice['NTA'] = slice['Points'].apply(lambda x: find_NTA(x))
+slice['NTA'].sample(5)
+
+#Success!
+
+# %%
+#Let's put things back where they were.
+gtgarden.update(slice, overwrite=True, join='left', errors='ignore')
+gtgarden.info()
+
+# %%
+#Let's crosscheck these objects again.
+def nbcrosscheck(nta):
+    for instance, row in ntarecords.iterrows():
+        if row['ntacode'] == nta:
+            return row['ntaname'] #Essentially the same as checking which polygons fell where
+            break
+    return None
+
+gtgarden['neighborhood'] = gtgarden['NTA'].apply(nbcrosscheck)
+gtgarden['neighborhood'].sample(5)
+
+# %%
+#Let's put things back in order.
+gtgarden = gtgarden[['parksid',
+                    'gardenname',
+                    'status',
+                    'address',
+                    'lat',
+                    'lon',
+                    'BBL',
+                    'neighborhood',
+                    'borough',
+                    'crossStreets',
+                    'zipcode',
+                    'openhrsm',
+                    'openhrstu',
+                    'openhrsw',
+                    'openhrsth',
+                    'openhrsf',
+                    'openhrssa',
+                    'openhrssu',
+                    'CensusTract',
+                    'assemblydist',
+                    'communityboard',
+                    'NTA',
+                    'congressionaldist',
+                    'coundist',
+                    'statesenatedist',
+                    'policeprecinct',
+                    'juris',
+                    'multipolygon']]
+
+# %%
+#Great! Now let's also rename these so they're more useful for us.
+#First, let's set everything to CamelCase. We'll also unshorten and deacronymize names.
+#In the case of the hours, we'll rename them for the sake of clarity.
+
+gtgarden.rename(columns={   'parksid':'ParkID',
+                    'gardenname':'GardenName',
+                    'status':'Status',
+                    'address':'Address',
+                    'lat':'Latitude',
+                    'lon':'Longitude',
+                    'BBL':'BoroughBlockLot',
+                    'neighborhood':'Neighborhood',
+                    'borough':'Borough',
+                    'crossStreets':'CrossStreets',
+                    'zipcode':'ZIPCode',
+                    'openhrsm':'MondayHours',
+                    'openhrstu':'TuesdayHours',
+                    'openhrsw':'WednesdayHours',
+                    'openhrsth':'ThursdayHours',
+                    'openhrsf':'FridayHours',
+                    'openhrssa':'SaturdayHours',
+                    'openhrssu':'SundayHours',
+                    'CensusTract':'CensusTract',
+                    'assemblydist':'AssemblyDistrict',
+                    'communityboard':'CommunityBoard',
+                    'NTA':'NeighborhoodTabulationArea',
+                    'congressionaldist':'CongressionalDistrict',
+                    'coundist':'CityCouncilDistrict',
+                    'statesenatedist':'StateSenateDistrict',
+                    'policeprecinct':'PolicePrecinct',
+                    'juris':'Jurisdiction',
+                    'multipolygon':'MultipolygonShape'
+                },  
+                inplace=True    )
+
+gtgarden.info()
+
+# %%
+#One last thing...
+#Let's standardize street names in the addresses.
+#Specifically: we want to target those capitalizations.
+
+def titlecase(address):
+    return re.sub(r'([A-Z]{3,})', lambda x: x.group(0).title(), address) 
+
+#This one was a little hard to figure out
+#Specifically using 3 or more here to make sure naming conventions with successive capital letters are unaffected
+#Didn't use blanket .title() method to respect Irish names (among others)
+
+gtgarden['Address'] = gtgarden['Address'].apply(titlecase)
+
+# %%
+#This seems good enough to go!
 #Let's output our new, cleaned, upgraded dataset.
 
 gtgarden_postclean = gtgarden
 
 # %%
-#Write cleaned dataframe to CSV!
+#Write cleaned DataFrame to CSV!
 gtgarden_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
 
 
