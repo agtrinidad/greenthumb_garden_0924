@@ -152,7 +152,7 @@ gtgarden.info()
 # %%
 #We see that some results still lack crossStreets: that is, intersections.
 slice = gtgarden[gtgarden['crossStreets'].isna()].copy()
-slice.sample(5)
+print(slice.sample(5))
 
 #Unfortunately, Google's API doesn't support returning intersections.
 #In some cases, identifiying intersections might be inappropriate.
@@ -162,6 +162,9 @@ slice.sample(5)
 #These can be updated with new values from an updated version of the sheet.
 
 gtgarden['crossStreets'] = gtgarden['crossStreets'].fillna('N/A')
+
+#We can, however, address some shorthand which might not show up well in our ultimate visualization.
+gtgarden['crossStreets'] = gtgarden['crossStreets'].replace(r'[Bb][Tt][Ww][Nn]?', r'Between', regex=True)
 
 # %%
 #It still looks like we have some blank values here and there...
@@ -235,7 +238,7 @@ slice.sample(15)
 
 # %%
 #Back to the main dataframe.
-gtgarden.update(slice, overwrite=False, join='left', errors='ignore')
+gtgarden.update(slice, overwrite=True, join='left', errors='ignore')
 gtgarden.info()
 
 # %%
@@ -261,7 +264,6 @@ gtgarden = gtgarden[['parksid',
                     'borough',
                     'crossStreets',
                     'zipcode',
-                    'openhrsf',
                     'openhrsm',
                     'openhrstu',
                     'openhrsw',
