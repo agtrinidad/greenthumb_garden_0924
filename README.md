@@ -1,5 +1,5 @@
 ![DASHBOARD](https://github.com/user-attachments/assets/e9655510-7c5d-4a48-ab74-f94842dae450)
-<p align=center> https://public.tableau.com/app/profile/agtrinidad/viz/GreenThumbCommunityGardens/ </p>
+<p align=center> https://public.tableau.com/app/profile/agtrinidad/viz/GreenThumbCommunityGardens/DASHBOARD </p>
 
 # greenthumb_garden_0924
 
