@@ -1,4 +1,6 @@
 ![DASHBOARD](https://github.com/user-attachments/assets/e9655510-7c5d-4a48-ab74-f94842dae450)
+<p align=center> https://public.tableau.com/app/profile/avery.trinidad7926/viz/GreenThumbCommunityGardens </p>
+
 # greenthumb_garden_0924
 
 This project explores data sourced from NYC OpenData's GreenThumb Garden Info, dated to 9/16/2024. Further updates are not reflected in this repo.
@@ -10,7 +12,7 @@ The original, unaltered dataset is contained in an Excel-compatible CSV (GreenTh
 The included notebook (greenthumb_garden_0924.ipynb) demonstrates Python-based data cleaning. A Python script version of the same is included (gtgarden_script.py).
 Its output (greenthumb_garden_clean.csv) reflects the dataset post-processing.
 
-The included Tableau workbook (greenthumb.twb) reflects this cleaned version of the available data. 
+The included Tableau workbook (greenthumb.twb) reflects this cleaned version of the available data. <br>
 [An interactive version is hosted here, hosted on Tableau's website.](https://public.tableau.com/app/profile/avery.trinidad7926/viz/GreenThumbCommunityGardens/DASHBOARD)
 
 ---------------------------------------------------------------------------------------------------------------
