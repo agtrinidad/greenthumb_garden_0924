@@ -1,5 +1,5 @@
 ![DASHBOARD](https://github.com/user-attachments/assets/e9655510-7c5d-4a48-ab74-f94842dae450)
-<p align=center> https://public.tableau.com/app/profile/avery.trinidad7926/viz/GreenThumbCommunityGardens </p>
+<p align=center> https://public.tableau.com/app/profile/agtrinidad/viz/GreenThumbCommunityGardens/ </p>
 
 # greenthumb_garden_0924
 
@@ -13,7 +13,7 @@ The included notebook (greenthumb_garden_0924.ipynb) demonstrates Python-based d
 Its output (greenthumb_garden_clean.csv) reflects the dataset post-processing.
 
 The included Tableau workbook (greenthumb.twb) reflects this cleaned version of the available data. <br>
-[An interactive version is hosted here, hosted on Tableau's website.](https://public.tableau.com/app/profile/avery.trinidad7926/viz/GreenThumbCommunityGardens/DASHBOARD)
+[An interactive version is hosted here, hosted on Tableau's website.](https://public.tableau.com/app/profile/agtrinidad/viz/GreenThumbCommunityGardens/DASHBOARD)
 
 ---------------------------------------------------------------------------------------------------------------
 
