@@ -1,4 +1,6 @@
+![DASHBOARD](https://github.com/user-attachments/assets/e9655510-7c5d-4a48-ab74-f94842dae450)
 # greenthumb_garden_0924
+
 This project explores data sourced from NYC OpenData's GreenThumb Garden Info, dated to 9/16/2024. Further updates are not reflected in this repo.
 The most up-to-date version of this record [can be found on NYC OpenData's archive](https://data.cityofnewyork.us/dataset/GreenThumb-Garden-Info/p78i-pat6/about_data).
 
