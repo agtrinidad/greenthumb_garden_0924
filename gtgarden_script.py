@@ -1,42 +1,37 @@
-# %%
-#Basic DataFrame & numerical libraries
-import pandas as pd 
-
-#Importing visualization libraries for exploratory analysis
-import matplotlib.pyplot as plt 
-import seaborn as sns 
-
-#Importing to standardize formatting (geolocation)
-import geopy
-
-#Importing geocoder classes
-from geopy.geocoders import GoogleV3
-
-#Logical conclusion of importing pandas and geopy
-import shapely #will help us work with geocoded data later
-from shapely.geometry import Point, Polygon
-
 #Importing necessary packages
 import requests
 from requests import get
 import json
 import re
 
-#This library (safetyfile) contains a Google Maps API key.
+#Basic DataFrame & numerical libraries
+import pandas as pd 
+#Importing visualization libraries for exploratory analysis
+import matplotlib.pyplot as plt 
+import seaborn as sns 
+#Importing to standardize formatting (geolocation)
+import geopy
+#Importing geocoder classes
+from geopy.geocoders import GoogleV3
+#Logical conclusion of importing pandas and geopy
+import shapely #will help us work with geocoded data later
+from shapely.geometry import Point, Polygon
+
+#This local library (safety_file) contains a Google Maps API key.
 #It is excluded from the uploaded dataset in the interest of informational security.
-import safetyfile
-from safetyfile import googleapi
+import safety_file
+from safety_file import googleapi
 
 print(type(googleapi))
 
 # %%
 #Reading original CSV to DataFrame
-gtgarden = pd.read_csv('GreenThumb_Garden_Info_20240916.csv')
-gtgarden.info()
+gt_garden_df = pd.read_csv('GreenThumb_Garden_Info_20240916.csv')
+gt_garden_df.info()
 
 # %%
 #Looking at a limited sample of entries
-gtgarden.sample(5)
+gt_garden_df.sample(5)
 
 # %%
 #It looks like Pandas incorrectly read in ZIP Codes as floats...
@@ -46,14 +41,14 @@ def repairzip(textobj):
 
 # %%
 #Let's put into action!
-gtgarden['zipcode'] = gtgarden['zipcode'].apply(repairzip)
-print(gtgarden['zipcode'].sample(5))
+gt_garden_df['zipcode'] = gt_garden_df['zipcode'].apply(repairzip)
+print(gt_garden_df['zipcode'].sample(5))
 
 # %%
 #Finding coordinates problem entries, slicing into separate DataFrame
 #We can use 'lat' as a proxy for both latitude and longitude: when one is absent, the other is absent
 
-slice = gtgarden[pd.isnull(gtgarden['lat'])].copy()
+slice = gt_garden_df[pd.isnull(gt_garden_df['lat'])].copy()
 slice.info()
 
 # %%
@@ -109,16 +104,16 @@ slice = slice.drop(columns=['geocode'])
 
 # %%
 #With that done, let's now join this content back into the main DataFrame.
-gtgarden.update(slice, overwrite=False, join='left', errors='ignore')
-gtgarden.info()
+gt_garden_df.update(slice, overwrite=False, join='left', errors='ignore')
+gt_garden_df.info()
 
 # %%
 #Just to double check... no null values!
-gtgarden[gtgarden['lon'].isnull()]
+gt_garden_df[gt_garden_df['lon'].isnull()]
 
 # %%
 #But we're seeing a problem with 'CensusTract'.
-gtgarden[gtgarden['CensusTract'].isnull()].sample(5)
+gt_garden_df[gt_garden_df['CensusTract'].isnull()].sample(5)
 
 # %%
 #While geopy doesn't have native support for US Census Geocoder API...
@@ -128,7 +123,7 @@ import censusgeocode as cg
 
 # %%
 #Let's make another slice.
-slice = gtgarden[gtgarden['CensusTract'].isnull()].copy()
+slice = gt_garden_df[gt_garden_df['CensusTract'].isnull()].copy()
 slice.sample(5)['CensusTract']
 
 # %%
@@ -156,12 +151,12 @@ slice[['address','CensusTract','lat','lon']].sample(5)
 
 # %%
 #Return again to the main DataFrame!
-gtgarden.update(slice, overwrite=False, join='left', errors='ignore')
-gtgarden.info()
+gt_garden_df.update(slice, overwrite=False, join='left', errors='ignore')
+gt_garden_df.info()
 
 # %%
 #We see that some results still lack crossStreets: that is, intersections.
-slice = gtgarden[gtgarden['crossStreets'].isna()].copy()
+slice = gt_garden_df[gt_garden_df['crossStreets'].isna()].copy()
 print(slice.sample(5))
 
 #Unfortunately, Google's API doesn't support returning intersections.
@@ -171,21 +166,21 @@ print(slice.sample(5))
 #For now, we'll fill these with the string value 'N/A'.
 #These can be updated with new values from an updated version of the sheet.
 
-gtgarden['crossStreets'] = gtgarden['crossStreets'].fillna('N/A')
+gt_garden_df['crossStreets'] = gt_garden_df['crossStreets'].fillna('N/A')
 
 #We can, however, address some shorthand which might not show up well in our ultimate visualization.
-gtgarden['crossStreets'] = gtgarden['crossStreets'].replace(r'[Bb][Tt][Ww][Nn]?', r'Between', regex=True)
+gt_garden_df['crossStreets'] = gt_garden_df['crossStreets'].replace(r'[Bb][Tt][Ww][Nn]?', r'Between', regex=True)
 
 # %%
 #It still looks like we have some blank values here and there...
-gtgarden.info()
+gt_garden_df.info()
 
 # %%
 #Column indices [9,15] are all describing open hours.
 #A bit confusingly, they go in the order of: [Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday].
 #We can conver this to [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday] at a later point.
 
-slice = gtgarden.iloc[:,9:16].copy()
+slice = gt_garden_df.iloc[:,9:16].copy()
 slice.sample(15)
 
 # %%
@@ -248,13 +243,13 @@ slice.sample(15)
 
 # %%
 #Back to the main DataFrame.
-gtgarden.update(slice, overwrite=True, join='left', errors='ignore')
-gtgarden.info()
+gt_garden_df.update(slice, overwrite=True, join='left', errors='ignore')
+gt_garden_df.info()
 
 # %%
 #Nice! Now let's clear away non-necessities...
-gtgarden = gtgarden.map(lambda x: x.strip() if isinstance(x, str) else x)
-gtgarden.sample(5)
+gt_garden_df = gt_garden_df.map(lambda x: x.strip() if isinstance(x, str) else x)
+gt_garden_df.sample(5)
 
 # %%
 #Let's sort the columns into a more logical order.
@@ -264,7 +259,7 @@ gtgarden.sample(5)
 #More categorical tags, like congressional districts, can be moved after them.
 #We'll move open hours to the very back...
 
-gtgarden = gtgarden[['parksid',
+gt_garden_df = gt_garden_df[['parksid',
                     'gardenname',
                     'status',
                     'address',
@@ -292,14 +287,14 @@ gtgarden = gtgarden[['parksid',
                     'juris',
                     'multipolygon']]
 
-gtgarden.sample(5)
+gt_garden_df.sample(5)
 
 # %%
 #It's really weird that the boroughs are acronymized in this way...
 #The good thing is that the creators of this dataset made every borough have a unique one-character symbol.
 #We'll replace them with the function below:
 
-def boroughsort(chara):
+def borough_sort(chara):
     if chara == 'M':
         return 'Manhattan'
     elif chara == 'X':
@@ -311,16 +306,16 @@ def boroughsort(chara):
     else:
         return 'Staten Island'
     
-gtgarden['borough'] = gtgarden['borough'].apply(boroughsort)
-gtgarden['borough'].sample(5)
+gt_garden_df['borough'] = gt_garden_df['borough'].apply(borough_sort)
+gt_garden_df['borough'].sample(5)
 
 # %%
 #These are corrections to a few... small unique errors in the original dataset.
 #For example, this garden in the Bronx being des.ignated as Brooklyn.
 
-print(gtgarden.loc[5,'gardenname'])
-print(gtgarden.loc[5,'borough'])
-gtgarden.loc[5, 'borough'] = 'Bronx'
+print(gt_garden_df.loc[5,'gardenname'])
+print(gt_garden_df.loc[5,'borough'])
+gt_garden_df.loc[5, 'borough'] = 'Bronx'
 
 #Easy fix.
 #We've made this dataset usable, but it might take some more work than this to make it perfect.
@@ -347,16 +342,16 @@ ntarecords['the_geom'].sample(4)
 #Great!
 
 # %%
-#Cool! Now let's clean the NTA column in 'gtgarden'.
+#Cool! Now let's clean the NTA column in 'gt_garden_df'.
 
-gtgarden['NTA'] = gtgarden['NTA'].apply(lambda x: x[:4])
-gtgarden['NTA'].sample(3)
+gt_garden_df['NTA'] = gt_garden_df['NTA'].apply(lambda x: x[:4])
+gt_garden_df['NTA'].sample(3)
 
 # %%
 #We still have to take care of those empty 'NTA' rows...
 #The 'slice' is back!
 
-slice = gtgarden[gtgarden['NTA'] == '/'].copy()
+slice = gt_garden_df[gt_garden_df['NTA'] == '/'].copy()
 slice.sample(5)
 
 # %%
@@ -367,21 +362,21 @@ slice['Points'].sample(5)
 # %%
 #Now, let's try and apply this...
 
-def find_NTA(point):
+def find_nta(point):
     for instance, row in ntarecords.iterrows():
         if row['the_geom'].contains(point):
             return row['ntacode']
     return None
 
-slice['NTA'] = slice['Points'].apply(lambda x: find_NTA(x))
+slice['NTA'] = slice['Points'].apply(lambda x: find_nta(x))
 slice['NTA'].sample(5)
 
 #Success!
 
 # %%
 #Let's put things back where they were.
-gtgarden.update(slice, overwrite=True, join='left', errors='ignore')
-gtgarden.info()
+gt_garden_df.update(slice, overwrite=True, join='left', errors='ignore')
+gt_garden_df.info()
 
 # %%
 #Let's crosscheck these objects again.
@@ -392,12 +387,12 @@ def nbcrosscheck(nta):
             break
     return None
 
-gtgarden['neighborhood'] = gtgarden['NTA'].apply(nbcrosscheck)
-gtgarden['neighborhood'].sample(5)
+gt_garden_df['neighborhood'] = gt_garden_df['NTA'].apply(nbcrosscheck)
+gt_garden_df['neighborhood'].sample(5)
 
 # %%
 #Let's put things back in order.
-gtgarden = gtgarden[['parksid',
+gt_garden_df = gt_garden_df[['parksid',
                     'gardenname',
                     'status',
                     'address',
@@ -431,7 +426,7 @@ gtgarden = gtgarden[['parksid',
 #First, let's set everything to CamelCase. We'll also unshorten and deacronymize names.
 #In the case of the hours, we'll rename them for the sake of clarity.
 
-gtgarden.rename(columns={   'parksid':'ParkID',
+gt_garden_df.rename(columns={   'parksid':'ParkID',
                     'gardenname':'GardenName',
                     'status':'Status',
                     'address':'Address',
@@ -462,7 +457,7 @@ gtgarden.rename(columns={   'parksid':'ParkID',
                 },  
                 inplace=True    )
 
-gtgarden.info()
+gt_garden_df.info()
 
 # %%
 #One last thing...
@@ -476,16 +471,17 @@ def titlecase(address):
 #Specifically using 3 or more here to make sure naming conventions with successive capital letters are unaffected
 #Didn't use blanket .title() method to respect Irish names (among others)
 
-gtgarden['Address'] = gtgarden['Address'].apply(titlecase)
+gt_garden_df['Address'] = gt_garden_df['Address'].apply(titlecase)
 
 # %%
 #This seems good enough to go!
 #Let's output our new, cleaned, upgraded dataset.
 
-gtgarden_postclean = gtgarden
+gt_garden_df_postclean = gt_garden_df
 
 # %%
 #Write cleaned DataFrame to CSV!
-gtgarden_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
+gt_garden_df_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
+
 
 
