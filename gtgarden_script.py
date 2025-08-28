@@ -20,9 +20,9 @@ from shapely.geometry import Point, Polygon
 #This local library (safety_file) contains a Google Maps API key.
 #It is excluded from the uploaded dataset in the interest of informational security.
 import safety_file
-from safety_file import googleapi
+from safety_file import GOOGLE_API
 
-print(type(googleapi))
+print(type(GOOGLE_API))
 
 # %%
 #Reading original CSV to DataFrame
@@ -55,7 +55,7 @@ slice.info()
 #Creating GoogleV3 class, searches using Google Map API to identify submitted addresses
 #The aforementioned API key is used here.
 
-geolocator = GoogleV3(api_key=googleapi)
+geolocator = GoogleV3(api_key=GOOGLE_API)
 
 # %%
 #Using .apply() to basically create a Google Maps query for the address
@@ -482,6 +482,7 @@ gt_garden_df_postclean = gt_garden_df
 # %%
 #Write cleaned DataFrame to CSV!
 gt_garden_df_postclean.to_csv("greenthumb_garden_clean.csv", sep=',', encoding='utf-8', index=False)
+
 
 
 
